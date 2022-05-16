@@ -19,7 +19,13 @@ router.get('/:code', async (req, res, next) => {
     try {
         const {code} = req.params;
 
-        const compResult = await db.query(`SELECT * FROM companies WHERE code=$1`, [code]);
+        const compResult = await db.query(
+            `SELECT c.code, c.name, c.description, i.code AS industry 
+            FROM companies AS c 
+            JOIN associates AS a ON c.code = a.comp_code 
+            JOIN industries AS i ON i.code = a.ind_code 
+            WHERE c.code=$1`, [code]);
+
         const inResult = await db.query(`SELECT id FROM invoices WHERE comp_code=$1`, [code]);
 
         if (compResult.rows.length === 0) {
