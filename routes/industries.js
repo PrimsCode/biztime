@@ -8,15 +8,28 @@ const db = require("../db");
 
 router.get('/', async (req, res, next) => {
     try {
-        const results = await db.query(
-            `SELECT i.code, i.name, c.code AS comp_code 
-            FROM industries AS i 
-            LEFT JOIN associates AS a 
-            ON i.code = a.ind_code 
-            LEFT JOIN companies AS c 
-            ON a.comp_code = c.code`);
+        const results = await db.query(`SELECT * FROM industries`);
+        const comp_results = await db.query(`SELECT * FROM associates`);
 
-        return res.json({industries: results.rows});
+        let industries = [];
+        for (let i = 0; i< results.rows.length; i++){
+            let industry = [];
+            let {code, name} = results.rows[i];
+            let companies =[];
+            for (let j = 0; j< comp_results.rows.length; j++){
+                if (comp_results.rows[j].ind_code === code){
+                    companies.push(comp_results.rows[j].comp_code);
+                }
+            }
+            industry = {
+                code: code,
+                name: name,
+                companies: companies
+            };
+            industries.push(industry);
+        }
+        
+        return res.json({industries: industries});
     } catch (e) {
         return next(e);
     }    
